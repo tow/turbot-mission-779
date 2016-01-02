@@ -12,7 +12,9 @@ Turbotlib.log("Starting run...") # optional debug logging
 
 page = agent.get(SOURCE_URL)
 
-form_fields = page.form_with(:id => 'aspnetForm').fields
+post_form = page.form_with(:id => 'aspnetForm')
+
+form_fields = post_form.fields
 
 form_fields.each do |f|
    puts f.name, f.value
@@ -40,11 +42,19 @@ if options != expected_options
    raise RuntimeError
 end
 
-#get all the relevant input fields
+# set up appropriate form request ("all")
 
-#that is everything under form input
+target_field = post_form.field_with(name: "ctl00$ScriptManager")
+target_field.value = "ctl00$ctl72$g_4e681960_6197_4386_bea6_a1c8799fd31f$ctl00$UpdatePanel1|ctl00_ctl72_g_4e681960_6197_4386_bea6_a1c8799fd31f_ctl00_UpdatePanel1" # magic string. Can we inspect this from the HTML as well?
 
-#get all the relevant options 
+post_form.add_field!("__EVENTARGUMENT", "filter|ctl72_g_4e6813|1. Thai Commercial Banks")
+post_form.add_field!("__ASYNCPOST", "true")
+
+new_page = post_form.submit
+
+puts new_page.body
+
+
 
 #(1...20).each do |n|
 #  data = {
