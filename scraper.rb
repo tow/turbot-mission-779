@@ -20,9 +20,25 @@ end
 
 doc = page.parser
 
-options = doc.css("div#MSOZoneCell_WebPartWPQ3 div.table-searchbox select options")
+options = doc.css("div#MSOZoneCell_WebPartWPQ3 div.table-filter option").map { |o| o['value'] }
 
-options.each { |o| puts o }
+puts options
+
+expected_options = ["",
+"1. Thai Commercial Banks",
+"2. Retail Banks",
+"3. Subsidiary",
+"4. Foreign Banks Branches",
+"5. Finance Companies",
+"6. Credit Fonciers",
+"7. Foreign Bank Representatives",
+"8. Assets Management Companies (AMC)",
+"9. Specialized Financial Institutions",
+]
+
+if options != expected_options
+   raise RuntimeError
+end
 
 #get all the relevant input fields
 
