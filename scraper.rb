@@ -47,47 +47,59 @@ target_value = selector_target_new + "|" + selector_target
 
 target_field = post_form.field_with(name: "ctl00$ScriptManager")
 target_field.value = target_value
-
-post_form.add_field!("__EVENTARGUMENT", "filter|"+selector_id+"|1. Thai Commercial Banks")
+post_form.add_field!("__EVENTARGUMENT", "")
 post_form.add_field!("__ASYNCPOST", "true")
 
-headers = {
-    'Content-Type'=> 'application/x-www-form-urlencoded',
-    'User-Agent'=>"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:43.0) Gecko/20100101 Firefox/43.0",
-}
 
-np = agent.post(SOURCE_URL, post_form.request_data, headers)
+def companies_for_category(agent, post_form, selector_id, category_name)
+  human_readable_category = category_name.split('.')[1].strip
+  argument_field = post_form.field_with(name: "__EVENTARGUMENT")
+  argument_field.value = "filter|" + selector_id + "|" + category_name
 
-page = Nokogiri::HTML(np.body)
-
-now = Time.now
-
-page.css("tr")[2..-1].each do |tr|
-  tds = tr.css("td")
-  datum = {
-    confidence: "LOW", # until I understand the schema better
-    licence_holder: {
-      entity_properties: {
-        name: tds[1].xpath("div/text()")[0].text.strip,
-        registered_address: tds[2].xpath("text()")[0].text.strip,
-        website: tds[1].xpath("div/a/@href"),
-        telephone_number: tds[2].xpath("text()")[1].text.strip,
-        fax_number: tds[2].xpath("text()")[2].text.strip,
-      },
-    },
-    jurisdiction_of_licence: "th",
-    licence_issuer: {
-      jurisdiction: "Thailand",
-      name: "Bank of Thailand",
-    },
-    type: "Thai Commercial Banks",
-    source_url: SOURCE_URL,     # mandatory field
-    sample_date: now,       # mandatory field
-    retrieved_at: now,       # mandatory field
-    category: "Financial",
-    permissions: {
-      activity_name: "Thai Commercial Banks",
-    },
+  headers = {
+      'Content-Type'=> 'application/x-www-form-urlencoded',
+      'User-Agent'=>"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:43.0) Gecko/20100101 Firefox/43.0",
   }
-  puts JSON.dump(datum)
+
+  np = agent.post(SOURCE_URL, post_form.request_data, headers)
+
+  page = Nokogiri::HTML(np.body)
+
+  now = Time.now
+
+  page.css("tr")[2..-1].each do |tr|
+    tds = tr.css("td")
+    datum = {
+      confidence: "LOW", # until I understand the schema better
+      licence_holder: {
+        entity_properties: {
+          name: tds[1].xpath("div/text()")[0].text.strip,
+          registered_address: tds[2].xpath("text()")[0].text.strip,
+          website: tds[1].xpath("div/a/@href"),
+          telephone_number: tds[2].xpath("text()")[1].text.strip,
+          fax_number: tds[2].xpath("text()")[2].text.strip,
+        },
+      },
+      jurisdiction_of_licence: "th",
+      licence_issuer: {
+        jurisdiction: "Thailand",
+        name: "Bank of Thailand",
+      },
+      source_url: SOURCE_URL,     # mandatory field
+      sample_date: now,       # mandatory field
+      retrieved_at: now,       # mandatory field
+      category: "Financial",
+      permissions: {
+        activity_name: human_readable_category,
+      },
+    }
+    puts JSON.dump(datum)
+  end
+end
+
+
+options[1..-1].each do |o|
+   puts "---------------------------___"
+   puts o
+   companies_for_category(agent, post_form, selector_id, o)
 end
