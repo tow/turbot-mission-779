@@ -14,18 +14,15 @@ page = agent.get(SOURCE_URL)
 
 post_form = page.form_with(:id => 'aspnetForm')
 
-form_fields = post_form.fields
-
-form_fields.each do |f|
-   puts f.name, f.value
-end
 
 doc = page.parser
 
-options = doc.css("div#MSOZoneCell_WebPartWPQ3 div.table-filter option").map { |o| o['value'] }
+selector = doc.css("div#MSOZoneCell_WebPartWPQ3 div.table-filter select")[0]
+selector_id = selector['id']
+selector_rx = /getComboA\(this,'([^']*)'\)/
+selector_target = selector_rx.match(selector['onchange'])[1]
 
-puts options
-
+options = selector.css("option").map { |o| o['value'] }
 expected_options = ["",
 "1. Thai Commercial Banks",
 "2. Retail Banks",
@@ -37,18 +34,27 @@ expected_options = ["",
 "8. Assets Management Companies (AMC)",
 "9. Specialized Financial Institutions",
 ]
-
 if options != expected_options
    raise RuntimeError
 end
 
 # set up appropriate form request ("all")
+replace_rx = /([^_]+)_([^_]+)_(.+)_([^_]+)_([^_]+)/
+selector_target_new = selector_target.gsub(replace_rx, '\1$\2$\3$\4$\5')
+
+target_value = selector_target_new + "|" + selector_target
 
 target_field = post_form.field_with(name: "ctl00$ScriptManager")
-target_field.value = "ctl00$ctl72$g_4e681960_6197_4386_bea6_a1c8799fd31f$ctl00$UpdatePanel1|ctl00_ctl72_g_4e681960_6197_4386_bea6_a1c8799fd31f_ctl00_UpdatePanel1" # magic string. Can we inspect this from the HTML as well?
+target_field.value = target_value
 
-post_form.add_field!("__EVENTARGUMENT", "filter|ctl72_g_4e6813|1. Thai Commercial Banks")
+post_form.add_field!("__EVENTARGUMENT", "filter|"+selector_id+"|1. Thai Commercial Banks")
 post_form.add_field!("__ASYNCPOST", "true")
+
+form_fields = post_form.fields
+
+form_fields.each do |f|
+   puts f.name, f.value
+end
 
 new_page = post_form.submit
 
