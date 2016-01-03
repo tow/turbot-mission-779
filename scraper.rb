@@ -15,46 +15,14 @@ page = agent.get(SOURCE_URL)
 
 post_form = page.form_with(:id => 'aspnetForm')
 
-
 doc = page.parser
 
-selector = doc.css("div#MSOZoneCell_WebPartWPQ3 div.table-filter select")[0]
-selector_id = selector['id']
 selector_rx = /getComboA\(this,'([^']*)'\)/
-selector_target = selector_rx.match(selector['onchange'])[1]
-
-options = selector.css("option").map { |o| o['value'] }
-expected_options = ["",
-"1. Thai Commercial Banks",
-"2. Retail Banks",
-"3. Subsidiary",
-"4. Foreign Banks Branches",
-"5. Finance Companies",
-"6. Credit Fonciers",
-"7. Foreign Bank Representatives",
-"8. Assets Management Companies (AMC)",
-"9. Specialized Financial Institutions",
-]
-if options != expected_options
-   raise RuntimeError
-end
-
-# set up appropriate form request ("all")
-replace_rx = /([^_]+)_([^_]+)_(.+)_([^_]+)_([^_]+)/
-selector_target_new = selector_target.gsub(replace_rx, '\1$\2$\3$\4$\5')
-
-target_value = selector_target_new + "|" + selector_target
-
-target_field = post_form.field_with(name: "ctl00$ScriptManager")
-target_field.value = target_value
-post_form.add_field!("__EVENTARGUMENT", "")
-post_form.add_field!("__ASYNCPOST", "true")
 
 
 def companies_for_category(agent, post_form, selector_id, category_name)
   human_readable_category = category_name.split('.')[1].strip
-  argument_field = post_form.field_with(name: "__EVENTARGUMENT")
-  argument_field.value = "filter|" + selector_id + "|" + category_name
+  post_form['__EVENTARGUMENT'] = "filter|" + selector_id + "|" + category_name
 
   headers = {
       'Content-Type'=> 'application/x-www-form-urlencoded',
@@ -98,6 +66,59 @@ def companies_for_category(agent, post_form, selector_id, category_name)
 end
 
 
-options[1..-1].each do |o|
-   companies_for_category(agent, post_form, selector_id, o)
+def do_all_options(agent, post_form, selector_id, selector_target, options)
+  # set up appropriate form request ("all")
+  replace_rx = /([^_]+)_([^_]+)_(.+)_([^_]+)_([^_]+)/
+  selector_target_new = selector_target.gsub(replace_rx, '\1$\2$\3$\4$\5')
+
+  post_form['ctl00$ScriptManager'] = selector_target_new + "|" + selector_target
+  post_form['__ASYNCPOST'] = "true"
+
+
+  options.each do |o|
+    companies_for_category(agent, post_form, selector_id, o)
+  end
 end
+
+
+
+# For bank institutions
+selector = doc.css("div#MSOZoneCell_WebPartWPQ3 div.table-filter select")[0]
+selector_id = selector['id']
+selector_target = selector_rx.match(selector['onchange'])[1]
+
+options = selector.css("option").map { |o| o['value'] }
+expected_options = ["",
+"1. Thai Commercial Banks",
+"2. Retail Banks",
+"3. Subsidiary",
+"4. Foreign Banks Branches",
+"5. Finance Companies",
+"6. Credit Fonciers",
+"7. Foreign Bank Representatives",
+"8. Assets Management Companies (AMC)",
+"9. Specialized Financial Institutions",
+]
+if options != expected_options
+   raise RuntimeError
+end
+
+do_all_options(agent, post_form, selector_id, selector_target, options[1..-1])
+
+
+# For non-bank institutions
+selector = doc.css("div#MSOZoneCell_WebPartWPQ5 div.table-filter select")[0]
+selector_id = selector['id']
+selector_target = selector_rx.match(selector['onchange'])[1]
+
+options = selector.css("option").map { |o| o['value'] }
+expected_options = ["",
+"1. Credit Card Company",
+"2. Personal Loan Company",
+"3. Nano Finance",
+]
+if options != expected_options
+   raise RuntimeError
+end
+
+do_all_options(agent, post_form, selector_id, selector_target, options[1..-1])
