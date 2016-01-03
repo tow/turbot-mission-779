@@ -3,9 +3,10 @@
   "title": "Finance Licences (Banking) - Bank of Thailand",
   "description": "Financial operating licenses issued by the Bank of Thailand",
   "language": "ruby",
-  "data_type": "primary data",
+  "data_type": "licence",
   "identifying_fields": [
-    "name"
+    "licence_holder.entity_properties.name",
+    "permissions"
   ],
   "company_fields": {
     "name": "company"
