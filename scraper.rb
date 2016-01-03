@@ -50,26 +50,16 @@ target_field.value = target_value
 post_form.add_field!("__EVENTARGUMENT", "filter|"+selector_id+"|1. Thai Commercial Banks")
 post_form.add_field!("__ASYNCPOST", "true")
 
-form_fields = post_form.fields
-
-form_fields.each do |f|
-   puts f.name, f.value
-end
-
-new_page = post_form.submit
-
-puts new_page.body
-
-
-
-#(1...20).each do |n|
-#  data = {
-#    number: n,
-#    company: "Company #{n} Ltd",
-#    message: "Hello #{n}",
-#    sample_date: Time.now,
-#    source_url: "http://somewhere.com/#{n}"
-#  }
-  # The Turbot specification simply requires us to output lines of JSON
-#  puts JSON.dump(data)
+#post_form.fields.each do |f|
+#   puts f.name
 #end
+
+puts post_form.request_data
+
+headers = {
+    'Content-Type'=> 'application/x-www-form-urlencoded',
+    'User-Agent'=>"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:43.0) Gecko/20100101 Firefox/43.0",
+}
+
+np = agent.post(SOURCE_URL, post_form.request_data, headers)
+puts np.body
