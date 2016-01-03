@@ -76,8 +76,8 @@ def companies_for_category(agent, post_form, selector_id, category_name)
           name: tds[1].xpath("div/text()")[0].text.strip,
           registered_address: tds[2].xpath("text()")[0].text.strip,
           website: tds[1].xpath("div/a/@href"),
-          telephone_number: tds[2].xpath("text()")[1].text.strip,
-          fax_number: tds[2].xpath("text()")[2].text.strip,
+          telephone_number: tds[2].xpath("text()")[1].text[4..-1].strip,
+          fax_number: tds[2].xpath("text()")[2].text[4..-1].strip,
         },
       },
       jurisdiction_of_licence: "th",
@@ -99,7 +99,5 @@ end
 
 
 options[1..-1].each do |o|
-   puts "---------------------------___"
-   puts o
    companies_for_category(agent, post_form, selector_id, o)
 end
