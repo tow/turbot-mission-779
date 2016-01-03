@@ -37,30 +37,41 @@ def companies_for_category(agent, post_form, selector_id, category_name)
 
   page.css("tr")[2..-1].each do |tr|
     tds = tr.css("td")
+    contact_data = {
+      "registered_address" => tds[2].xpath("text()")[0].text.strip,
+      "website" => tds[1].xpath("div/a/@href"),
+      "telephone_number" => tds[2].xpath("text()")[1].text[4..-1].strip,
+      "fax_number" => tds[2].xpath("text()")[2].text[4..-1].strip
+    }
+
     datum = {
-      confidence: "LOW", # until I understand the schema better
-      licence_holder: {
-        entity_properties: {
-          name: tds[1].xpath("div/text()")[0].text.strip,
-          registered_address: tds[2].xpath("text()")[0].text.strip,
-          website: tds[1].xpath("div/a/@href"),
-          telephone_number: tds[2].xpath("text()")[1].text[4..-1].strip,
-          fax_number: tds[2].xpath("text()")[2].text[4..-1].strip,
+      "confidence" => "LOW", # until I understand the schema better
+      "licence_holder" => {
+        "entity_type" => "company",
+        "entity_properties" => {
+          "name" => tds[1].xpath("div/text()")[0].text.strip
         },
       },
-      jurisdiction_of_licence: "th",
-      licence_issuer: {
-        jurisdiction: "Thailand",
-        name: "Bank of Thailand",
+      "jurisdiction_of_licence" => "th",
+      "licence_issuer" => {
+        "jurisdiction" => "Thailand",
+        "name" =>"Bank of Thailand",
       },
-      source_url: SOURCE_URL,     # mandatory field
-      sample_date: now,       # mandatory field
-      retrieved_at: now,       # mandatory field
-      category: "Financial",
-      permissions: {
-        activity_name: human_readable_category,
-      },
+      "source_url" => SOURCE_URL,     # mandatory field
+      "sample_date" => now,       # mandatory field
+      "retrieved_at" => now,       # mandatory field
+      "category" => ["Financial"],
+      "permissions" => [
+        { "activity_name" => human_readable_category }
+      ],
     }
+
+    contact_data.each_pair do |k, v|
+      if v.size > 4
+        datum['licence_holder']['entity_properties'][k] = v
+      end
+    end
+
     puts JSON.dump(datum)
   end
 end
