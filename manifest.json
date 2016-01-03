@@ -1,11 +1,11 @@
 {
   "bot_id": "mission-779",
-  "title": "My simple bot",
-  "description": "This is a simple bot",
+  "title": "Finance Licences (Banking) - Bank of Thailand",
+  "description": "Financial operating licenses issued by the Bank of Thailand",
   "language": "ruby",
   "data_type": "primary data",
   "identifying_fields": [
-    "number"
+    "name"
   ],
   "company_fields": {
     "name": "company"
@@ -15,9 +15,11 @@
   ],
   "frequency": "monthly",
   "publisher": {
-    "name": "Publisher of the data",
-    "url": "Publisher's website",
-    "terms": "Copyright terms (e.g. Open Government License, n/a, etc)",
-    "terms_url": "A place where these terms can be checked or verified"
-  }
+    "name": "Bank of Thailand",
+    "url": "https://www.bot.or.th",
+    "terms": "Copying permitted: \"BOT is pleased to allow Users to visit the Site and download and copy the information, documents and materials [...] \"",
+    "terms_url": "https://www.bot.or.th/English/TermsAndCondition/Pages/default.aspx"
+  },
+  "tags": ["licence", "financial"],
+  "public_repo_url": "https://github.com/tow/turbot-mission-779"
 }
